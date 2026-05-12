@@ -1,0 +1,22 @@
+#File paths for the datasets
+base_file_path : "data/files_input/"
+
+# clustering values
+clustering :
+    epsilon_value : 0.5
+    min_samples : 5
+
+#Output folders for the graphs
+graphs_output_folder:
+    # visualization_of_lidar_data: "local_analysis/images_src/visualization_of_lidar_data"
+    cluster_list: "local_analysis/images_src/cluster_list"
+    catenary_curve : "local_analysis/images_src/catenary_curve"
+
+#catenary model details
+models: "models/"
+
+#logging details
+logging:
+  level : INFO
+  format : '%(asctime)s - %(name)s - %(levelname)s - %(message)s'  
+    
