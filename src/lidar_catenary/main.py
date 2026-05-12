@@ -1,8 +1,8 @@
 import argparse
-from loader import DataLoader
-from cluster import DataCluster
-from pca_curve_fitter import PCACurveFitter
-from config_loader import get_config
+from lidar_catenary.loader import DataLoader
+from lidar_catenary.cluster import DataCluster
+from lidar_catenary.pca_curve_fitter import PCACurveFitter
+from lidar_catenary.config_loader import get_config
 import json
 import os
 import logging
@@ -14,29 +14,32 @@ class Orchestrator:
     Orchestrates the full LiDAR data prcoessing pipeline: Data loading, clustering and curve fitting
     """
 
-    def __init__(self, dataset_name):
+    def __init__(self, dataset_path, output_dir = None):
         """
         Name of the dataset file to be processed
         """
-        self.dataset_name = dataset_name
+        self.dataset_name = os.path.basename(dataset_path)
+        self.dataset_path = dataset_path
+        self.output_dir = output_dir or os.path.join(os.getcwd(), "lidar_output")
+
 
     def run_workflow(self):
         """
         Executes the complete pipeline in sequence and logs the output plot locations
         """
         LOGGER.info("DataLoader start..")
-        data_load_object = DataLoader(self.dataset_name)
+        data_load_object = DataLoader(self.dataset_path)
         dataset_df = data_load_object.read_data()
         data_load_object.validate(dataset_df)
         LOGGER.info("DataLoader end...\n")
 
         LOGGER.info("DataCluster start..")
-        data_cluster_object = DataCluster(dataset_df, self.dataset_name)
+        data_cluster_object = DataCluster(dataset_df, self.dataset_name, self.output_dir)
         labeled_dataset_df, number_of_clusters = data_cluster_object.clustering()
         LOGGER.info("DataCluster end...\n")
 
         LOGGER.info("PCACurveFitter start..")
-        pca_curve_fitter_object = PCACurveFitter(labeled_dataset_df, self.dataset_name, number_of_clusters)
+        pca_curve_fitter_object = PCACurveFitter(labeled_dataset_df, self.dataset_name, number_of_clusters, self.output_dir)
         catenary_results = pca_curve_fitter_object.pca_curve_fitting()
         LOGGER.info("PCACurveFitter end...\n")
 
@@ -44,10 +47,10 @@ class Orchestrator:
         
         return {
             "catenary_model": catenary_results,
-            "cluster_list_plot_path" : 'local_analysis/images_src/cluster_list/',
-            "clustered_data_csv_file_path" : 'data/clustered_files',
-            "catenary_curve_plot_path" : 'local_analysis/images_src/catenary_curve/',
-            "catenary_model_json_path" : 'models/'
+            "cluster_list_plot_path" : os.path.join(self.output_dir,'cluster_list'),
+            "clustered_data_csv_file_path" : os.path.join(self.output_dir,'clustered_files'),
+            "catenary_curve_plot_path" : os.path.join(self.output_dir,'catenary_curve'),
+            "catenary_model_json_path" : os.path.join(self.output_dir,'models')
         }
 
 
@@ -55,13 +58,17 @@ class Orchestrator:
 if __name__ == "__main__":
     # takes the file name to be processed dynamically using 'argparse' and passes it to the workflow
     parser = argparse.ArgumentParser()
-    parser.add_argument("--dataset", required = True, help = "Specify the file name that you want to process. Example = 'python3 src/main.py --dataset lidar_cable_points_easy.parquet'")
+    parser.add_argument("--dataset", required = True, help = "Specify the file name that you want to process. Example = 'python3 -m lidar_catenary.main --dataset lidar_cable_points_easy.parquet'")
+    parser.add_argument("--output-dir", required=False, default=None, help="Directory to save all outputs (plots, csvs, models)")
+    parser.add_argument("--config", required = False, default = None, help = "Path to override the existing config value")
     args = parser.parse_args()
-    file_path = f"{CONFIG['base_file_path']}/{args.dataset}" 
+    #file_path = f"{CONFIG['base_file_path']}/{args.dataset}" 
+    get_config(user_config_path=args.config)
+    file_path = args.dataset
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"Dataset file not found: {file_path}")
     if not file_path.endswith(".parquet"):
         raise ValueError("Given file is not a parquet file")
-    orchestrator_object = Orchestrator(args.dataset)
+    orchestrator_object = Orchestrator(file_path, output_dir=args.output_dir)
     result = orchestrator_object.run_workflow()
     print("Result details = ", json.dumps(result, indent=4))

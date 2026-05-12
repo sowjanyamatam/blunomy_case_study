@@ -3,7 +3,7 @@ import numpy as np
 from sklearn.cluster import DBSCAN
 import matplotlib.pyplot as plt
 import os
-from config_loader import get_config
+from lidar_catenary.config_loader import get_config
 from datetime import datetime
 import logging
 LOGGER = logging.getLogger(__name__)
@@ -13,18 +13,19 @@ class DataCluster:
     """
     This class applies PCA and then uses DBScan for clustering
     """
-    def __init__(self, dataset_df, dataset_name):
+    def __init__(self, dataset_df, dataset_name, output_dir):
         """
         Intilizes clustering setup (dataset name, clustering parameters, configuration details)
         """
         self.epsilon_value = CONFIG["clustering"]["epsilon_value"]
         self.min_samples = CONFIG["clustering"]["min_samples"]
         self.dataset_name = dataset_name
+        self.output_dir = output_dir
         self.base_dataset_name = os.path.splitext(self.dataset_name)[0]
-        self.cluster_list_plot_folder = f"{CONFIG['graphs_output_folder']['cluster_list']}/{self.base_dataset_name}"
+        self.cluster_list_plot_folder = os.path.join(self.output_dir,'cluster_list',self.base_dataset_name)
         self.dataset_df = dataset_df
         self.timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-        self.output_cluster_csv_file_path = os.path.join("data/clustered_files",self.base_dataset_name)
+        self.output_cluster_csv_file_path = os.path.join(self.output_dir,'clustered_files',self.base_dataset_name)
         self.output_cluster_file_name = f"{self.timestamp}_cluster_data_file.csv"
         
     def clustering(self):

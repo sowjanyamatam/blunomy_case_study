@@ -4,7 +4,7 @@ from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 import os
 import copy
-from config_loader import get_config
+from lidar_catenary.config_loader import get_config
 import json
 from datetime import datetime
 import logging
@@ -16,16 +16,16 @@ class PCACurveFitter:
     """
     This class fits catenary curves to clustered 3D points data using PCA and curve fitting
     """
-    def __init__(self, labeled_dataset_df, dataset_name, clusters_count):
+    def __init__(self, labeled_dataset_df, dataset_name, clusters_count, output_dir):
         """
         Initilizes dataset name, configuration details and folder paths
         """
         self.labeled_dataset_df = labeled_dataset_df
         self.dataset_name = dataset_name
+        self.output_dir = output_dir
         self.base_dataset_name = os.path.splitext(self.dataset_name)[0]
-        self.catenary_curve_folder = f"{CONFIG['graphs_output_folder']['catenary_curve']}/{self.base_dataset_name}"
-        self.catenary_json_folder = os.path.join(CONFIG['models'],self.base_dataset_name)
-        os.makedirs(self.catenary_json_folder, exist_ok=True)
+        self.catenary_curve_folder = os.path.join(self.output_dir,'catenary_curve',self.base_dataset_name)
+        self.catenary_json_folder = os.path.join(self.output_dir,'models',self.base_dataset_name)
         self.clusters_count = clusters_count
         self.timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
 
@@ -124,6 +124,7 @@ class PCACurveFitter:
         }
 
         if CONFIG["output"]["save_model_json"]:
+            os.makedirs(self.catenary_json_folder, exist_ok=True)
             self.json_file_path = os.path.join(self.catenary_json_folder, f"{self.timestamp}_catenary_parameters.json")
             with open(self.json_file_path, "w") as json_file:
                 json.dump(catenary_points_dict, json_file, indent=4)

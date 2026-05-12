@@ -1,7 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
-from config_loader import get_config
+from lidar_catenary.config_loader import get_config
 import numpy as np
 import logging
 LOGGER = logging.getLogger(__name__)
@@ -12,21 +12,20 @@ class DataLoader:
     This is used to read data from the provided Parquet file
     """
     required_columns = ["x", "y", "z"]
-    def __init__(self, dataset_name):
+    def __init__(self, dataset_path):
         """
         This calls the configuration method to access the data defined in the config file.
         Name of the dataset file to be processed
         File path where the file is located
         """
-        self.dataset_name = dataset_name
-        self.file_path = f"{CONFIG['base_file_path']}/{self.dataset_name}" 
+        self.dataset_path = dataset_path
 
     def read_data(self):
         """
         Returns the output of the parquet file as a DataFrame
         """
         try:
-            self.lidar_data_df = pd.read_parquet(self.file_path)
+            self.lidar_data_df = pd.read_parquet(self.dataset_path)
         except Exception as e:
             raise ValueError(f"Failed to read Parquet File '{self.file_path}': {e}") from e
         LOGGER.debug("\nColumn details - \n%s",self.lidar_data_df.columns)

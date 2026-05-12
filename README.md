@@ -55,22 +55,24 @@ Extract -> Transform -> Load/Output (main.py)
 .
 ├── .gitignore
 ├── README.md
-├── config
-│   └── config.yml  # tunable parameters
 ├── data
 │   ├── clustered_files
 │   └── files_input # place your parquet files here
 ├── local_analysis
 │   ├── analysis.ipynb
+├── models
 ├── pyproject.toml
 ├── requirements.txt
 └── src
-    ├── __init__.py
-    ├── cluster.py
-    ├── config_loader.py
-    ├── loader.py
-    ├── main.py
-    └── pca_curve_fitter.py
+    └── lidar_catenary
+        ├── __init__.py
+        ├── cluster.py
+        ├── config
+        │   └── config.yml  # tunable parameters
+        ├── config_loader.py
+        ├── loader.py
+        ├── main.py
+        └── pca_curve_fitter.py
 ```
 
 
@@ -80,8 +82,9 @@ Extract -> Transform -> Load/Output (main.py)
 
 ### From Github (recommended)
 ```bash
-pip3 install git+https://github.com/sowjanyamatam/blunomy_case_study.git
+pip3 install git+https://github.com/sowjanyamatam/blunomy_case_study.git@dev
 ```
+> Note: this repository currently has the packaged code and `pyproject.toml` on the `dev` branch. Install from `dev` until the default `main` branch is updated.
 
 ### For local development
 ```bash
@@ -98,12 +101,12 @@ pip3 install -e .
 
 ```bash
 # place parquet file in data/files_input/ first
-python3 src/main.py --dataset "lidar_cable_points_easy.parquet"
+python3 src/lidar_catenary/main.py --dataset "lidar_cable_points_easy.parquet"
 ```
 
 ### As a python package
 ```python
-from src.main import Orchestrator
+from lidar_catenary import Orchestrator
 result = Orchestrator("lidar_cable_points_easy.parquet").run_workflow()
 
 # access the full model
@@ -120,7 +123,7 @@ print(f"{summary['wires_fitted'] wires fitted}")
 
 ## Configuration
  
-All parameters live in `config/config.yml`. No code changes needed to tune the algorithm.
+All parameters live in `lidar_catenary/config/config.yml`. No code changes needed to tune the algorithm.
  
 | Key | Default | Description |
 |-----|---------|-------------|
