@@ -24,7 +24,6 @@ class PCACurveFitter:
         self.dataset_name = dataset_name
         self.base_dataset_name = os.path.splitext(self.dataset_name)[0]
         self.catenary_curve_folder = f"{CONFIG['graphs_output_folder']['catenary_curve']}/{self.base_dataset_name}"
-        os.makedirs(self.catenary_curve_folder, exist_ok=True)
         self.catenary_json_folder = os.path.join(CONFIG['models'],self.base_dataset_name)
         os.makedirs(self.catenary_json_folder, exist_ok=True)
         self.clusters_count = clusters_count
@@ -53,7 +52,7 @@ class PCACurveFitter:
             "Timestamp" : {},
             "clustering_parameters": {},
             "summary": {},
-            "wires": {}
+            "wires": []
         }
         failed_wires = []
         self.epsilon_value = CONFIG["clustering"]["epsilon_value"]
@@ -88,28 +87,34 @@ class PCACurveFitter:
             y0 = float(params[1])
             c = float(params[2])
 
-            catenary_points_dict["wires"][wire_name] = {"x0":x0, "y0":y0, "c":c}
+            catenary_points_dict["wires"].append({"wire_id":wire_name,
+                                                  "x0":x0,
+                                                  "y0":y0,
+                                                  "c":c})
 
-        
-        for wire_name in catenary_points_dict["wires"]:
-            params = catenary_points_dict["wires"][wire_name]
-            x_axis_values = wire_data[wire_name]['x_axis_values']
-            z_height_values = wire_data[wire_name]['z_height_values']
+        if CONFIG["output"]["save_images"]:
+            LOGGER.info("Saving Catenary curve plots")
+            os.makedirs(self.catenary_curve_folder, exist_ok=True)
+            for wire in catenary_points_dict["wires"]:
+                params = wire
+                x_axis_values = wire_data[wire['wire_id']]['x_axis_values']
+                z_height_values = wire_data[wire['wire_id']]['z_height_values']
 
-            sort_idx = np.argsort(x_axis_values)
-            x_line_value = x_axis_values[sort_idx]
-            z_data_sorted_value = z_height_values[sort_idx]
-            z_line_value = PCACurveFitter.curve_equation(x_line_value, params["x0"], params["y0"], params["c"])
+                sort_idx = np.argsort(x_axis_values)
+                x_line_value = x_axis_values[sort_idx]
+                z_data_sorted_value = z_height_values[sort_idx]
+                z_line_value = PCACurveFitter.curve_equation(x_line_value, params["x0"], params["y0"], params["c"])
 
-            plt.figure()
-            plt.scatter(x_axis_values, z_height_values, s=5, label = "Lidar Points")
-            plt.plot(x_line_value, z_line_value, color = "red", label = "catenary curve fit")
-            plt.title(wire_name)
-            plt.xlabel("pc1_angle")
-            plt.ylabel("z-height")
-            plt.legend()
-            plt.savefig(f"{self.catenary_curve_folder}/{wire_name}_catenary.png")
-            plt.close()
+                plt.figure()
+                plt.scatter(x_axis_values, z_height_values, s=5, label = "Lidar Points")
+                plt.plot(x_line_value, z_line_value, color = "red", label = "catenary curve fit")
+                plt.title(wire["wire_id"])
+                plt.xlabel("pc1_angle")
+                plt.ylabel("z-height")
+                plt.legend()
+                plt.savefig(f"{self.catenary_curve_folder}/{wire['wire_id']}_catenary.png")
+                plt.close()
+                LOGGER.info(f"Saved the of {wire_name} to {self.catenary_curve_folder}/{wire['wire_id']}_catenary.png ")
 
         wires_fitted = len(catenary_points_dict["wires"])
         catenary_points_dict["summary"] = {
@@ -118,11 +123,13 @@ class PCACurveFitter:
             "wires_failed" : failed_wires,
         }
 
-        self.json_file_path = os.path.join(self.catenary_json_folder, f"{self.timestamp}_catenary_parameters.json")
-        with open(self.json_file_path, "w") as json_file:
-            json.dump(catenary_points_dict, json_file, indent=4)
+        if CONFIG["output"]["save_model_json"]:
+            self.json_file_path = os.path.join(self.catenary_json_folder, f"{self.timestamp}_catenary_parameters.json")
+            with open(self.json_file_path, "w") as json_file:
+                json.dump(catenary_points_dict, json_file, indent=4)
         
-        LOGGER.info("The catenary model is saved to %s folder. %d wires fitted succesfully", self.json_file_path, wires_fitted)
+            LOGGER.info("The catenary model is saved to %s folder. %d wires fitted succesfully", self.json_file_path, wires_fitted)
         if failed_wires:
             LOGGER.warning("Wires that failed curve fitting: %s", failed_wires)
+        return catenary_points_dict
 

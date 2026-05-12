@@ -1,10 +1,10 @@
 # File paths for the datasets
-base_file_path : "data/files_input/"
+base_file_path: "data/files_input/"
 
 # clustering values
-clustering :
-    epsilon_value : 0.5
-    min_samples : 5
+clustering:
+    epsilon_value: 0.5
+    min_samples: 5
 
 # Output folders for the graphs
 graphs_output_folder:
@@ -17,9 +17,15 @@ models: "models/"
 
 # logging details
 logging:
-  level : INFO
-  format : '%(asctime)s - %(name)s - %(levelname)s - %(message)s'  
+  level: INFO
+  format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'  
 
 # minimum number of points(rows) needed in dataset file for clustering
-min_points_for_clustering : 10
+min_points_for_clustering: 10
+
+# Save images configuration, by default we are making it as false.
+output:
+    save_images: false
+    save_clustered_csv: false
+    save_model_json: true
     

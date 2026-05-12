@@ -37,12 +37,13 @@ class Orchestrator:
 
         LOGGER.info("PCACurveFitter start..")
         pca_curve_fitter_object = PCACurveFitter(labeled_dataset_df, self.dataset_name, number_of_clusters)
-        pca_curve_fitter_object.pca_curve_fitting()
+        catenary_results = pca_curve_fitter_object.pca_curve_fitting()
         LOGGER.info("PCACurveFitter end...\n")
 
         LOGGER.debug("** Please check the 'local_analysis/images_src' folder to view the generated cluster seperation plots for the dataset and catenary curve fitting visualizations **\n")
         
         return {
+            "catenary_model": catenary_results,
             "cluster_list_plot_path" : 'local_analysis/images_src/cluster_list/',
             "clustered_data_csv_file_path" : 'data/clustered_files',
             "catenary_curve_plot_path" : 'local_analysis/images_src/catenary_curve/',
