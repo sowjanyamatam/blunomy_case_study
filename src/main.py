@@ -31,13 +31,12 @@ class Orchestrator:
         data_cluster_object = DataCluster(dataset_df, self.dataset_name)
         labeled_dataset_df, number_of_clusters = data_cluster_object.clustering()
 
-        pca_curve_fitter_object = PCACurveFitter(labeled_dataset_df, self.dataset_name)
+        pca_curve_fitter_object = PCACurveFitter(labeled_dataset_df, self.dataset_name, number_of_clusters)
         pca_curve_fitter_object.pca_curve_fitting()
 
         LOGGER.debug("** Please check the 'local_analysis/images_src' folder to view the generated cluster seperation plots for the dataset and catenary curve fitting visualizations **\n")
         
         return {
-            "number_of_clusters" : int(number_of_clusters),
             "cluster_list_plot_path" : 'local_analysis/images_src/cluster_list/',
             "clustered_data_csv_file_path" : 'data/clustered_files',
             "catenary_curve_plot_path" : 'local_analysis/images_src/catenary_curve/',

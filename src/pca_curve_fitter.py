@@ -3,6 +3,7 @@ from sklearn.decomposition import PCA
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 import os
+import copy
 from config_loader import get_config
 import json
 import logging
@@ -14,7 +15,7 @@ class PCACurveFitter:
     """
     This class fits catenary curves to clustered 3D points data using PCA and curve fitting
     """
-    def __init__(self, labeled_dataset_df, dataset_name):
+    def __init__(self, labeled_dataset_df, dataset_name, clusters_count):
         """
         Initilizes dataset name, configuration details and folder paths
         """
@@ -24,6 +25,7 @@ class PCACurveFitter:
         self.catenary_curve_folder = f"{CONFIG['graphs_output_folder']['catenary_curve']}/{self.base_dataset_name}"
         os.makedirs(self.catenary_curve_folder, exist_ok=True)
         self.catenary_json_folder = CONFIG['models']
+        self.clusters_count = clusters_count
 
     @staticmethod
     def curve_equation(x, x0, y0, c):
@@ -42,8 +44,22 @@ class PCACurveFitter:
         self.n_features = self.labeled_dataset_df.shape[1] - 1
         self.number_of_clusters = self.labeled_dataset_df['labels'].nunique()
         wire_data = {}
-        catenary_points_dict = {}
+        catenary_points_dict = {
+            "clustering_parameters": {},
+            "summary": {},
+            "wires": {}
+        }
+        failed_wires = []
+        self.epsilon_value = CONFIG["clustering"]["epsilon_value"]
+        self.min_samples = CONFIG["clustering"]["min_samples"]
+        catenary_points_dict["clustering_parameters"] = {
+                "epsilon_value" : float(self.epsilon_value),
+                "min_samples": int(self.min_samples)
+        }
+
         for cluster_id in range(self.number_of_clusters):
+            if cluster_id == -1:
+                continue
             cluster_df = self.labeled_dataset_df[self.labeled_dataset_df['labels'] == cluster_id]
             cluster_array = cluster_df[["x","y","z"]].values
             wire_name = f"wire_{cluster_id}"
@@ -56,16 +72,18 @@ class PCACurveFitter:
                 params, _ = curve_fit(PCACurveFitter.curve_equation, x_axis_values, z_height_values, p0=None)
             except RuntimeError as e:
                 LOGGER.warning("Curve Fit failed for %s: %s", wire_name, e)
+                failed_wires.append(wire_name)
                 continue
             
             x0 = float(params[0])
             y0 = float(params[1])
             c = float(params[2])
 
-            catenary_points_dict[wire_name] = {"x0":x0, "y0":y0, "c":c}
+            catenary_points_dict["wires"][wire_name] = {"x0":x0, "y0":y0, "c":c}
 
-        for wire_name in catenary_points_dict:
-            params = catenary_points_dict[wire_name]
+        
+        for wire_name in catenary_points_dict["wires"]:
+            params = catenary_points_dict["wires"][wire_name]
             x_axis_values = wire_data[wire_name]['x_axis_values']
             z_height_values = wire_data[wire_name]['z_height_values']
 
@@ -83,14 +101,19 @@ class PCACurveFitter:
             plt.legend()
             plt.savefig(f"{self.catenary_curve_folder}/{wire_name}_catenary.png")
             plt.close()
-        
-        self.epsilon_value = CONFIG["clustering"]["epsilon_value"]
-        self.min_samples = CONFIG["clustering"]["min_samples"]
-        catenary_points_dict["clustering_parameters"] = {
-                "epsilon_value" : float(self.epsilon_value),
-                "min_samples": int(self.min_samples)
+
+        wires_fitted = len(catenary_points_dict["wires"])
+        catenary_points_dict["summary"] = {
+            "number_of_wires" : int(self.clusters_count),
+            "wires_fitted" : int(wires_fitted),
+            "wires_failed" : failed_wires,
         }
+
         self.json_file_path = os.path.join(self.catenary_json_folder, f"{self.base_dataset_name}_catenary_parameters.json")
         with open(self.json_file_path, "w") as json_file:
             json.dump(catenary_points_dict, json_file, indent=4)
-        LOGGER.debug("The catenary parameter file is saved in the 'models' folder.\n")
+        
+        LOGGER.info("The catenary model is saved to %s folder. %d wires fitted succesfully\n", self.json_file_path, wires_fitted)
+        if failed_wires:
+            LOGGER.warning("Wires that failed curve fitting: %s", failed_wires)
+

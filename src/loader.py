@@ -38,6 +38,7 @@ class DataLoader:
         LOGGER.debug("\nFirst few rows in Dataset - \n%s",self.lidar_data_df.head())
         LOGGER.debug("\nColumn details - \n%s",self.lidar_data_df.columns)
         LOGGER.debug("\nRows and coumns count - \n%s", self.lidar_data_df.shape)
+        LOGGER.info("Data is read from parquet files and loaded for the next stage of clustering")
         return self.lidar_data_df
     
     def validate(self, dataset_df):
