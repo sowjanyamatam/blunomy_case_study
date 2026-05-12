@@ -45,6 +45,9 @@ Extract -> Transform -> Load/Output (main.py)
 - pip3 install -r requirements.txt
 - python3 src/main.py  --dataset "dataset-to-be-processed.parquet"
     
+## Prerequisite
+
+Place the file in the data/files_input folder to process it.
 
 ## Python files
 - /src/main.py

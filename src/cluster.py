@@ -24,7 +24,7 @@ class DataCluster:
         self.cluster_list_plot_folder = f"{CONFIG['graphs_output_folder']['cluster_list']}/{self.base_dataset_name}"
         os.makedirs(self.cluster_list_plot_folder, exist_ok=True)
         self.dataset_df = dataset_df
-        self.timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
         self.output_cluster_csv_file_path = os.path.join("data/clustered_files",self.base_dataset_name)
         self.output_cluster_file_name = f"{self.timestamp}_cluster_data_file.csv"
         os.makedirs(self.output_cluster_csv_file_path, exist_ok=True)

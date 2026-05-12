@@ -6,6 +6,7 @@ import os
 import copy
 from config_loader import get_config
 import json
+from datetime import datetime
 import logging
 LOGGER = logging.getLogger(__name__)
 CONFIG = get_config()
@@ -24,8 +25,10 @@ class PCACurveFitter:
         self.base_dataset_name = os.path.splitext(self.dataset_name)[0]
         self.catenary_curve_folder = f"{CONFIG['graphs_output_folder']['catenary_curve']}/{self.base_dataset_name}"
         os.makedirs(self.catenary_curve_folder, exist_ok=True)
-        self.catenary_json_folder = CONFIG['models']
+        self.catenary_json_folder = os.path.join(CONFIG['models'],self.base_dataset_name)
+        os.makedirs(self.catenary_json_folder, exist_ok=True)
         self.clusters_count = clusters_count
+        self.timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
 
     @staticmethod
     def curve_equation(x, x0, y0, c):
@@ -45,6 +48,9 @@ class PCACurveFitter:
         self.number_of_clusters = self.labeled_dataset_df['labels'].nunique()
         wire_data = {}
         catenary_points_dict = {
+            "File_name" : {},
+            "Row_count" : {},
+            "Timestamp" : {},
             "clustering_parameters": {},
             "summary": {},
             "wires": {}
@@ -56,6 +62,9 @@ class PCACurveFitter:
                 "epsilon_value" : float(self.epsilon_value),
                 "min_samples": int(self.min_samples)
         }
+        catenary_points_dict["File_name"] = self.dataset_name
+        catenary_points_dict["Row_count"] = self.labeled_dataset_df.shape[0]
+        catenary_points_dict["Timestamp"] = self.timestamp
 
         for cluster_id in range(self.number_of_clusters):
             if cluster_id == -1:
@@ -109,11 +118,11 @@ class PCACurveFitter:
             "wires_failed" : failed_wires,
         }
 
-        self.json_file_path = os.path.join(self.catenary_json_folder, f"{self.base_dataset_name}_catenary_parameters.json")
+        self.json_file_path = os.path.join(self.catenary_json_folder, f"{self.timestamp}_catenary_parameters.json")
         with open(self.json_file_path, "w") as json_file:
             json.dump(catenary_points_dict, json_file, indent=4)
         
-        LOGGER.info("The catenary model is saved to %s folder. %d wires fitted succesfully\n", self.json_file_path, wires_fitted)
+        LOGGER.info("The catenary model is saved to %s folder. %d wires fitted succesfully", self.json_file_path, wires_fitted)
         if failed_wires:
             LOGGER.warning("Wires that failed curve fitting: %s", failed_wires)
 

@@ -1,2 +1,12 @@
 .DS_Store*
-*data*
+.vscode/
+*__pycache__*
+*.pyc
+data/files_input/*
+data/clustered_files/*
+!data/files_input/.gitkeep
+!data/clustered_files/.gitkeep
+local_analysis/csv_data/
+local_analysis/images/
+todo.txt
+models/
