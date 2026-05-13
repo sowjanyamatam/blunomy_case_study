@@ -84,8 +84,6 @@ python3 -m pip install --force-reinstall git+https://github.com/sowjanyamatam/bl
 ```bash
 git clone https://github.com/sowjanyamatam/blunomy_case_study.git
 cd blunomy_case_study
-pip install -e .
-```
 
 ---
 
@@ -94,7 +92,7 @@ pip install -e .
 ### From the CLI
 
 ```bash
-python3 src/lidar_catenary/main.py --dataset "data/files_input/lidar_cable_points_easy.parquet"
+python3 src/lidar_catenary/main.py --dataset "your-dataset-file-path.parquet"
 ```
 
 Optional flags:
