@@ -108,7 +108,11 @@ Optional flags:
 
 ```python
 from lidar_catenary import Orchestrator
+import lidar_catenary.config_loader as config_module
+from lidar_catenary.config_loader import get_config
+import json
 
+# optional -- to override default config values
 config_module.config = None
 get_config("your-config-file-path.yml")
 
@@ -124,6 +128,8 @@ for wire in model["wires"]:
 # check summary
 summary = model["summary"]
 print(f"{summary['wires_fitted']} wires fitted")
+
+print(json.dumps(result, indent = 4))
 ```
 
 ---
