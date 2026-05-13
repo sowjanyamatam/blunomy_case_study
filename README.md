@@ -76,7 +76,7 @@ where `c` is the curvature parameter, `x0` is the horizontal position of the low
 ### From GitHub
 
 ```bash
-pip install git+https://github.com/sowjanyamatam/blunomy_case_study.git
+python3 -m pip install --force-reinstall git+https://github.com/sowjanyamatam/blunomy_case_study.git
 ```
 
 ### For local development
@@ -109,7 +109,10 @@ Optional flags:
 ```python
 from lidar_catenary import Orchestrator
 
-result = Orchestrator("data/files_input/lidar_cable_points_easy.parquet").run_workflow()
+config_module.config = None
+get_config("your-config-file-path.yml")
+
+result = Orchestrator("your-datset-file-path.parquet").run_workflow()
 
 # access the full model
 model = result["catenary_model"]
