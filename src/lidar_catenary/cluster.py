@@ -56,7 +56,7 @@ class DataCluster:
         LOGGER.info("Running DBScan with eps=%.3f, min_smaples=%d on %d points",self.epsilon_value, self.min_samples, len(self.dataset_df))
         labels_for_clusters = DBSCAN(eps = self.epsilon_value, min_samples = self.min_samples).fit_predict(actual_reduced_coordinates)
         noise_count = np.sum(labels_for_clusters == -1)
-        number_of_clusters = len(set(labels_for_clusters)) - noise_count
+        number_of_clusters = len(set(labels_for_clusters)) - (1 if -1 in labels_for_clusters else 0)
         LOGGER.info("Clustering complete - %d clusters and %d noise count", number_of_clusters, noise_count)
 
         # Save cluster visualization if enabled in config file

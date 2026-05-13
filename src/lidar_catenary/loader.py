@@ -27,7 +27,7 @@ class DataLoader:
         try:
             self.lidar_data_df = pd.read_parquet(self.dataset_path)
         except Exception as e:
-            raise ValueError(f"Failed to read Parquet File '{self.file_path}': {e}") from e
+            raise ValueError(f"Failed to read Parquet File '{self.dataset_path}': {e}") from e
         LOGGER.debug("\nColumn details - \n%s",self.lidar_data_df.columns)
         LOGGER.debug("\nRows and coumns count - \n%s", self.lidar_data_df.shape)
         LOGGER.info("Data is read from parquet files and loaded for the next stage of clustering")
