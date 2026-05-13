@@ -47,11 +47,7 @@ class Orchestrator:
         LOGGER.debug("** Please check the 'local_analysis/images_src' folder to view the generated cluster seperation plots for the dataset and catenary curve fitting visualizations **\n")
         
         return {
-            "catenary_model": catenary_results,
-            "cluster_list_plot_path" : os.path.join(self.output_dir,'cluster_list'),
-            "clustered_data_csv_file_path" : os.path.join(self.output_dir,'clustered_files'),
-            "catenary_curve_plot_path" : os.path.join(self.output_dir,'catenary_curve'),
-            "catenary_model_json_path" : os.path.join(self.output_dir,'models')
+            "catenary_model": catenary_results
         }
 
 
