@@ -2,7 +2,6 @@ import yaml
 import logging
 from pathlib import Path
 
-
 config = None
 BASE_DIR = Path(__file__).resolve().parent
 DEFAULT_CONFIG_PATH = BASE_DIR / "config" / "config.yml"
@@ -25,6 +24,7 @@ def get_config(user_config_path= None):
             with open(user_path, "r") as f:
                 user_config = yaml.safe_load(f)
             _deep_merge(config, user_config)
+
         # DEBUG < INFO < WARNING < ERROR < CRITICAL
         logging.basicConfig(
             level = config["logging"]["level"],
@@ -34,8 +34,11 @@ def get_config(user_config_path= None):
     return config
 
 def _deep_merge(base: dict, override: dict):
-    """Recursively merges overrides into base inplace"""
+    """
+    Recursively merges overrides values into base inplace values
+    """
     for key, value in override.items():
+
         if isinstance(value, dict) and key in base and isinstance(base[key], dict):
             _deep_merge(base[key],value)
         else:

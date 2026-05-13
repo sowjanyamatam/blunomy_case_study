@@ -10,3 +10,4 @@ local_analysis/csv_data/
 local_analysis/images/
 todo.txt
 models/
+*egg*

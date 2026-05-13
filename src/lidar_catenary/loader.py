@@ -5,6 +5,7 @@ from lidar_catenary.config_loader import get_config
 import numpy as np
 import logging
 LOGGER = logging.getLogger(__name__)
+#This calls the configuration method to access the data defined in the config file.
 CONFIG = get_config()
 
 class DataLoader:
@@ -14,8 +15,6 @@ class DataLoader:
     required_columns = ["x", "y", "z"]
     def __init__(self, dataset_path):
         """
-        This calls the configuration method to access the data defined in the config file.
-        Name of the dataset file to be processed
         File path where the file is located
         """
         self.dataset_path = dataset_path
@@ -35,16 +34,20 @@ class DataLoader:
     
     def validate(self, dataset_df):
 
+        # Check if dataset has exactly the required columns
         if list(dataset_df.columns) != self.required_columns:
             raise ValueError(f"Invalid columns. Expected {self.required_columns} got {list(dataset_df.columns)}")
 
+        #Check for missing values in the dataset columns
         null_values_count = dataset_df[["x", "y", "z"]].isnull().sum()
         if null_values_count.any():
             raise ValueError(f"Null values found in columns: {null_values_count.to_dict()}")
         
+        # Ensure dataset has enough poiints for clustering
         if len(dataset_df) < CONFIG['min_points_for_clustering']:
             raise ValueError(f"Too few points ({len(dataset_df)}) to cluster correctly. Minimum points required = {CONFIG['min_points_for_clustering']} ")
         
+        #Check if there are any infinite points in the dataset provided
         infinite_points = np.isinf(dataset_df[["x", "y", "z"]].values)
         if infinite_points.any():
             raise ValueError("Infinite values found in the dataset")

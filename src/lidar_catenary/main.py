@@ -58,13 +58,16 @@ class Orchestrator:
 if __name__ == "__main__":
     # takes the file name to be processed dynamically using 'argparse' and passes it to the workflow
     parser = argparse.ArgumentParser()
-    parser.add_argument("--dataset", required = True, help = "Specify the file name that you want to process. Example = 'python3 -m lidar_catenary.main --dataset lidar_cable_points_easy.parquet'")
-    parser.add_argument("--output-dir", required=False, default=None, help="Directory to save all outputs (plots, csvs, models)")
+    parser.add_argument("--dataset", required = True, help = "Specify the file path that you want to process")
+    parser.add_argument("--output-dir", required=False, default=None, help = "Directory to save all outputs (plots, csvs, models)")
     parser.add_argument("--config", required = False, default = None, help = "Path to override the existing config value")
     args = parser.parse_args()
     #file_path = f"{CONFIG['base_file_path']}/{args.dataset}" 
+
+    # This replaces base config values with the ones which we provided while running
     get_config(user_config_path=args.config)
     file_path = args.dataset
+
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"Dataset file not found: {file_path}")
     if not file_path.endswith(".parquet"):

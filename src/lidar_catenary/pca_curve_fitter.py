@@ -24,6 +24,8 @@ class PCACurveFitter:
         self.dataset_name = dataset_name
         self.output_dir = output_dir
         self.base_dataset_name = os.path.splitext(self.dataset_name)[0]
+
+        # catenary curve and models folder path
         self.catenary_curve_folder = os.path.join(self.output_dir,'catenary_curve',self.base_dataset_name)
         self.catenary_json_folder = os.path.join(self.output_dir,'models',self.base_dataset_name)
         self.clusters_count = clusters_count
@@ -44,8 +46,11 @@ class PCACurveFitter:
         """
         self.n_samples = self.labeled_dataset_df.shape[0]
         self.n_features = self.labeled_dataset_df.shape[1] - 1
-        self.number_of_clusters = self.labeled_dataset_df['labels'].nunique()
+        # self.number_of_clusters = self.labeled_dataset_df['labels'].nunique()
+        self.number_of_clusters = self.clusters_count
         wire_data = {}
+
+        #Output Json file structure
         catenary_points_dict = {
             "File_name" : {},
             "Row_count" : {},
@@ -65,17 +70,22 @@ class PCACurveFitter:
         catenary_points_dict["Row_count"] = self.labeled_dataset_df.shape[0]
         catenary_points_dict["Timestamp"] = self.timestamp
 
+        # Processes each cluster
         for cluster_id in range(self.number_of_clusters):
             if cluster_id == -1:
                 continue
             cluster_df = self.labeled_dataset_df[self.labeled_dataset_df['labels'] == cluster_id]
             cluster_array = cluster_df[["x","y","z"]].values
             wire_name = f"wire_{cluster_id}"
+
+            #PCA
             pca_wire = PCA(n_components=min(self.n_samples, self.n_features)).fit(cluster_array)
             pca_wire_projected = pca_wire.transform(cluster_array)
             x_axis_values = pca_wire_projected[:,0]
             z_height_values = cluster_array[:,2]
             wire_data[wire_name] = {'x_axis_values':x_axis_values, 'z_height_values':z_height_values}
+            
+            # Curve fitting
             try:
                 params, _ = curve_fit(PCACurveFitter.curve_equation, x_axis_values, z_height_values, p0=None)
             except RuntimeError as e:
@@ -83,6 +93,7 @@ class PCACurveFitter:
                 failed_wires.append(wire_name)
                 continue
             
+            # Fitted parameters
             x0 = float(params[0])
             y0 = float(params[1])
             c = float(params[2])
@@ -91,7 +102,7 @@ class PCACurveFitter:
                                                   "x0":x0,
                                                   "y0":y0,
                                                   "c":c})
-
+        # Save plots if enabled
         if CONFIG["output"]["save_images"]:
             LOGGER.info("Saving Catenary curve plots")
             os.makedirs(self.catenary_curve_folder, exist_ok=True)
@@ -123,6 +134,7 @@ class PCACurveFitter:
             "wires_failed" : failed_wires,
         }
 
+        # Save model as json 
         if CONFIG["output"]["save_model_json"]:
             os.makedirs(self.catenary_json_folder, exist_ok=True)
             self.json_file_path = os.path.join(self.catenary_json_folder, f"{self.timestamp}_catenary_parameters.json")
