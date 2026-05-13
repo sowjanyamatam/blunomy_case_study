@@ -7,7 +7,7 @@ from lidar_catenary.config_loader import get_config
 from datetime import datetime
 import logging
 LOGGER = logging.getLogger(__name__)
-CONFIG = get_config()
+# CONFIG = get_config()
 
 class DataCluster:
     """
@@ -17,8 +17,9 @@ class DataCluster:
         """
         Intilizes clustering setup (dataset name, clustering parameters, configuration details)
         """
-        self.epsilon_value = CONFIG["clustering"]["epsilon_value"]
-        self.min_samples = CONFIG["clustering"]["min_samples"]
+        self.CONFIG = get_config()
+        self.epsilon_value = self.CONFIG["clustering"]["epsilon_value"]
+        self.min_samples = self.CONFIG["clustering"]["min_samples"]
         self.dataset_name = dataset_name
         self.output_dir = output_dir
         self.base_dataset_name = os.path.splitext(self.dataset_name)[0]
@@ -59,7 +60,7 @@ class DataCluster:
         LOGGER.info("Clustering complete - %d clusters and %d noise count", number_of_clusters, noise_count)
 
         # Save cluster visualization if enabled in config file
-        if CONFIG["output"]["save_images"]:
+        if self.CONFIG["output"]["save_images"]:
             os.makedirs(self.cluster_list_plot_folder, exist_ok=True)
             LOGGER.info("Saving clustering images")
             fig, ax = plt.subplots()
@@ -76,7 +77,7 @@ class DataCluster:
         self.labeled_dataset_df["labels"] = labels_for_clusters
         
         #Save .csv clustred data files if enabled in cnofg file
-        if CONFIG["output"]["save_clustered_csv"]:
+        if self.CONFIG["output"]["save_clustered_csv"]:
             os.makedirs(self.output_cluster_csv_file_path, exist_ok=True)
             self.labeled_dataset_df.to_csv(os.path.join(self.output_cluster_csv_file_path,self.output_cluster_file_name))
             LOGGER.debug("The clustered data file is saved in the 'data/clustered_files' folder.\n")

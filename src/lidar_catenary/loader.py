@@ -6,7 +6,7 @@ import numpy as np
 import logging
 LOGGER = logging.getLogger(__name__)
 #This calls the configuration method to access the data defined in the config file.
-CONFIG = get_config()
+# CONFIG = get_config()
 
 class DataLoader:
     """
@@ -18,6 +18,7 @@ class DataLoader:
         File path where the file is located
         """
         self.dataset_path = dataset_path
+        self.CONFIG = get_config()
 
     def read_data(self):
         """
@@ -44,8 +45,8 @@ class DataLoader:
             raise ValueError(f"Null values found in columns: {null_values_count.to_dict()}")
         
         # Ensure dataset has enough poiints for clustering
-        if len(dataset_df) < CONFIG['min_points_for_clustering']:
-            raise ValueError(f"Too few points ({len(dataset_df)}) to cluster correctly. Minimum points required = {CONFIG['min_points_for_clustering']} ")
+        if len(dataset_df) < self.CONFIG['min_points_for_clustering']:
+            raise ValueError(f"Too few points ({len(dataset_df)}) to cluster correctly. Minimum points required = {self.CONFIG['min_points_for_clustering']} ")
         
         #Check if there are any infinite points in the dataset provided
         infinite_points = np.isinf(dataset_df[["x", "y", "z"]].values)

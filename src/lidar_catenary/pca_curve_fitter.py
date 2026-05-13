@@ -9,7 +9,7 @@ import json
 from datetime import datetime
 import logging
 LOGGER = logging.getLogger(__name__)
-CONFIG = get_config()
+# CONFIG = get_config()
 
 
 class PCACurveFitter:
@@ -24,6 +24,7 @@ class PCACurveFitter:
         self.dataset_name = dataset_name
         self.output_dir = output_dir
         self.base_dataset_name = os.path.splitext(self.dataset_name)[0]
+        self.CONFIG = get_config()
 
         # catenary curve and models folder path
         self.catenary_curve_folder = os.path.join(self.output_dir,'catenary_curve',self.base_dataset_name)
@@ -60,8 +61,8 @@ class PCACurveFitter:
             "wires": []
         }
         failed_wires = []
-        self.epsilon_value = CONFIG["clustering"]["epsilon_value"]
-        self.min_samples = CONFIG["clustering"]["min_samples"]
+        self.epsilon_value = self.CONFIG["clustering"]["epsilon_value"]
+        self.min_samples = self.CONFIG["clustering"]["min_samples"]
         catenary_points_dict["clustering_parameters"] = {
                 "epsilon_value" : float(self.epsilon_value),
                 "min_samples": int(self.min_samples)
@@ -103,7 +104,7 @@ class PCACurveFitter:
                                                   "y0":y0,
                                                   "c":c})
         # Save plots if enabled
-        if CONFIG["output"]["save_images"]:
+        if self.CONFIG["output"]["save_images"]:
             LOGGER.info("Saving Catenary curve plots")
             os.makedirs(self.catenary_curve_folder, exist_ok=True)
             for wire in catenary_points_dict["wires"]:
@@ -135,9 +136,10 @@ class PCACurveFitter:
         }
 
         # Save model as json 
-        if CONFIG["output"]["save_model_json"]:
+        if self.CONFIG["output"]["save_model_json"]:
             os.makedirs(self.catenary_json_folder, exist_ok=True)
             self.json_file_path = os.path.join(self.catenary_json_folder, f"{self.timestamp}_catenary_parameters.json")
+            LOGGER.debug(f"saving teh file to save model {self.json_file_path}")
             with open(self.json_file_path, "w") as json_file:
                 json.dump(catenary_points_dict, json_file, indent=4)
         

@@ -5,6 +5,8 @@ from pathlib import Path
 config = None
 BASE_DIR = Path(__file__).resolve().parent
 DEFAULT_CONFIG_PATH = BASE_DIR / "config" / "config.yml"
+LOGGER = logging.getLogger(__name__)
+
 
 def get_config(user_config_path= None):
     """
@@ -30,7 +32,8 @@ def get_config(user_config_path= None):
             level = config["logging"]["level"],
             format = config["logging"]["format"]
         )
-    
+    LOGGER.debug("FINAL config value are")
+    LOGGER.debug(config)
     return config
 
 def _deep_merge(base: dict, override: dict):
