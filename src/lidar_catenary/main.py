@@ -3,11 +3,12 @@ from lidar_catenary.loader import DataLoader
 from lidar_catenary.cluster import DataCluster
 from lidar_catenary.pca_curve_fitter import PCACurveFitter
 from lidar_catenary.config_loader import get_config
+import lidar_catenary.config_loader as config_module
 import json
 import os
 import logging
 LOGGER = logging.getLogger(__name__)
-CONFIG = get_config()
+# CONFIG = get_config()
 
 class Orchestrator:
     """
@@ -65,6 +66,7 @@ if __name__ == "__main__":
     #file_path = f"{CONFIG['base_file_path']}/{args.dataset}" 
 
     # This replaces base config values with the ones which we provided while running
+    config_module.config = None
     get_config(user_config_path=args.config)
     file_path = args.dataset
 
