@@ -84,8 +84,7 @@ python3 -m pip install --force-reinstall git+https://github.com/sowjanyamatam/bl
 ```bash
 git clone https://github.com/sowjanyamatam/blunomy_case_study.git
 cd blunomy_case_study
-
----
+```
 
 ## Usage
 
