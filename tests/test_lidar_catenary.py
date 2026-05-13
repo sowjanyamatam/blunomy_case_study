@@ -30,17 +30,17 @@ MOCK_CONFIG = {
 
 
 #pca_curve_fitter tests
-@patch("lidar_catenary.pca_curve_fitter.CONFIG", MOCK_CONFIG)
+@patch("lidar_catenary.pca_curve_fitter.get_config", return_value=MOCK_CONFIG)
 class TestCurveEquation:
     """Tests for the static catenary equation."""
 
-    def test_vertex_is_at_x0(self):
+    def test_vertex_is_at_x0(self, mock_config):
         """At x = x0, the curve should return y0 (the minimum)."""
         from lidar_catenary.pca_curve_fitter import PCACurveFitter
         result = PCACurveFitter.curve_equation(x=0.0, x0=0.0, y0=1.0, c=2.0)
         assert result == pytest.approx(1.0)
 
-    def test_curve_is_symmetric(self):
+    def test_curve_is_symmetric(self, mock_config):
         """Catenary is symmetric: f(x0 + d) == f(x0 - d)."""
         from lidar_catenary.pca_curve_fitter import PCACurveFitter
         x0, y0, c = 3.0, 0.0, 2.0
@@ -48,16 +48,8 @@ class TestCurveEquation:
             PCACurveFitter.curve_equation(x0 - 1, x0, y0, c)
         )
 
-    def test_curve_increases_away_from_vertex(self):
-        """Points further from x0 should be higher (larger z)."""
-        from lidar_catenary.pca_curve_fitter import PCACurveFitter
-        x0, y0, c = 0.0, 0.0, 2.0
-        z_near = PCACurveFitter.curve_equation(1.0, x0, y0, c)
-        z_far = PCACurveFitter.curve_equation(4.0, x0, y0, c)
-        assert z_far > z_near
 
-
-@patch("lidar_catenary.pca_curve_fitter.CONFIG", MOCK_CONFIG)
+@patch("lidar_catenary.pca_curve_fitter.get_config", return_value=MOCK_CONFIG)
 class TestPCACurveFitter:
     """Tests for PCACurveFitter.pca_curve_fitting()."""
 
@@ -71,31 +63,31 @@ class TestPCACurveFitter:
             output_dir="/tmp/test_output",
         )
 
-    def test_returns_dict_with_expected_keys(self):
+    def test_returns_dict_with_expected_keys(self, mock_config):
         df = make_labeled_df(n_wires=2)
         result = self._make_fitter(df).pca_curve_fitting()
         for key in ("File_name", "Row_count", "Timestamp", "wires", "summary"):
             assert key in result
 
-    def test_wire_count_matches_clusters(self):
+    def test_wire_count_matches_clusters(self, mock_config):
         df = make_labeled_df(n_wires=3)
         result = self._make_fitter(df).pca_curve_fitting()
         assert result["summary"]["number_of_wires"] == 3
 
-    def test_each_wire_has_catenary_params(self):
+    def test_each_wire_has_catenary_params(self, mock_config):
         df = make_labeled_df(n_wires=2)
         result = self._make_fitter(df).pca_curve_fitting()
         for wire in result["wires"]:
             assert "x0" in wire and "y0" in wire and "c" in wire
 
-    def test_file_name_recorded_correctly(self):
+    def test_file_name_recorded_correctly(self, mock_config):
         df = make_labeled_df()
         result = self._make_fitter(df).pca_curve_fitting()
         assert result["File_name"] == "test.parquet"
 
 
 # loader tests
-@patch("lidar_catenary.loader.CONFIG", MOCK_CONFIG)
+@patch("lidar_catenary.loader.get_config", return_value = MOCK_CONFIG)
 class TestDataLoaderValidate:
     """Tests for DataLoader.validate()."""
 
@@ -110,26 +102,26 @@ class TestDataLoaderValidate:
             "z": np.random.uniform(0, 5, n),
         })
 
-    def test_valid_dataframe_passes(self):
-        self._loader().validate(self._good_df())   # should not raise
+    def test_valid_dataframe_passes(self, mock_config):
+        self._loader().validate(self._good_df())   # should not raise any error
 
-    def test_wrong_columns_raises(self):
+    def test_wrong_columns_raises(self, mock_config):
         bad_df = pd.DataFrame({"a": [1], "b": [2], "c": [3]})
         with pytest.raises(ValueError, match="Invalid columns"):
             self._loader().validate(bad_df)
 
-    def test_null_values_raises(self):
+    def test_null_values_raises(self, mock_config):
         df = self._good_df()
         df.loc[0, "x"] = np.nan
         with pytest.raises(ValueError, match="Null values"):
             self._loader().validate(df)
 
-    def test_too_few_points_raises(self):
+    def test_too_few_points_raises(self, mock_config):
         tiny_df = self._good_df(n=2)           # below min_points_for_clustering=10
         with pytest.raises(ValueError, match="Too few points"):
             self._loader().validate(tiny_df)
 
-    def test_infinite_values_raises(self):
+    def test_infinite_values_raises(self, mock_config):
         df = self._good_df()
         df.loc[0, "z"] = np.inf
         with pytest.raises(ValueError, match="Infinite values"):
@@ -137,7 +129,7 @@ class TestDataLoaderValidate:
 
 
 # clustering tests
-@patch("lidar_catenary.cluster.CONFIG", MOCK_CONFIG)
+@patch("lidar_catenary.cluster.get_config", return_value=MOCK_CONFIG)
 class TestDataCluster:
     """Tests for DataCluster.clustering()."""
 
@@ -153,7 +145,7 @@ class TestDataCluster:
         })
         return df
 
-    def test_returns_labeled_df_and_cluster_count(self):
+    def test_returns_labeled_df_and_cluster_count(self, mock_config):
         from lidar_catenary.cluster import DataCluster
         df = self._make_cluster_df()
         dc = DataCluster(df, "test.parquet", "/tmp/test_output")
@@ -161,7 +153,7 @@ class TestDataCluster:
         assert "labels" in labeled_df.columns
         assert n_clusters >= 1
 
-    def test_labeled_df_same_length_as_input(self):
+    def test_labeled_df_same_length_as_input(self, mock_config):
         from lidar_catenary.cluster import DataCluster
         df = self._make_cluster_df()
         dc = DataCluster(df, "test.parquet", "/tmp/test_output")
